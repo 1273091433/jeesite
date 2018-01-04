@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.bruceshop.dao.user.BruceshopUserDao">
+    
+	<sql id="bruceshopUserColumns">
+		a.id AS "id",
+		a.username AS "username",
+		a.usernickname AS "usernickname",
+		a.password AS "password",
+		a.email AS "email",
+		a.phone AS "phone",
+		a.question AS "question",
+		a.answer AS "answer",
+		a.lastlogintime AS "lastlogintime",
+		a.lastloginip AS "lastloginip",
+		a.regeistdate AS "regeistdate",
+		a.userlevel AS "userlevel",
+		a.islock AS "islock",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		p.name AS "userLevelName"
+	</sql>
+	
+	<sql id="bruceshopUserJoins">
+		left join bruceshop_userlevel p on p.id = a.userlevel
+	</sql>
+    
+	<select id="get" resultType="BruceshopUser">
+		SELECT 
+			<include refid="bruceshopUserColumns"/>
+		FROM bruceshop_user a
+		<include refid="bruceshopUserJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="BruceshopUser">
+		SELECT 
+			<include refid="bruceshopUserColumns"/>
+		FROM bruceshop_user a
+		<include refid="bruceshopUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			and
+			a.islock = #{islock}
+			<if test="username != null and username != ''">
+				AND a.username LIKE 
+					<if test="dbName == 'oracle'">'%'||#{username}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{username}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{username},'%')</if>
+			</if>
+			<if test="usernickname != null and usernickname != ''">
+				AND a.usernickname LIKE 
+					<if test="dbName == 'oracle'">'%'||#{usernickname}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{usernickname}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{usernickname},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="BruceshopUser">
+		SELECT 
+			<include refid="bruceshopUserColumns"/>
+		FROM bruceshop_user a
+		<include refid="bruceshopUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			and
+			a.islock = #{islock}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO bruceshop_user(
+			id,
+			username,
+			usernickname,
+			password,
+			email,
+			phone,
+			question,
+			answer,
+			lastlogintime,
+			lastloginip,
+			regeistdate,
+			userlevel,
+			islock,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{username},
+			#{usernickname},
+			#{password},
+			#{email},
+			#{phone},
+			#{question},
+			#{answer},
+			#{lastlogintime},
+			#{lastloginip},
+			#{regeistdate},
+			#{userlevel},
+			#{islock},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE bruceshop_user SET 	
+			username = #{username},
+			usernickname = #{usernickname},
+			password = #{password},
+			email = #{email},
+			phone = #{phone},
+			question = #{question},
+			answer = #{answer},
+			lastlogintime = #{lastlogintime},
+			lastloginip = #{lastloginip},
+			regeistdate = #{regeistdate},
+			userlevel = #{userlevel},
+			islock = #{islock},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE bruceshop_user SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="islock" parameterType="BruceshopUser">
+		UPDATE bruceshop_user SET 
+			islock = #{islock}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.classes.dao.cal.ClassesDao">
+    
+	<sql id="classesColumns">
+		a.id AS "id",
+		a.classes AS "classes",
+		a.sort AS "sort",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.parent_id AS "parent.id",
+		a.parent_ids AS "parentIds",
+		a.status AS "status"
+	</sql>
+	
+	<sql id="classesJoins">
+	</sql>
+    
+	<select id="get" resultType="Classes">
+		SELECT 
+			<include refid="classesColumns"/>
+		FROM classes a
+		<include refid="classesJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="Classes">
+		SELECT 
+			<include refid="classesColumns"/>
+		FROM classes a
+		<include refid="classesJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="classes != null and classes != ''">
+				AND a.classes = #{classes}
+			</if>
+			<if test="parent != null and parent.id != null and parent.id != ''">
+				AND a.parent_id = #{parent.id}
+			</if>
+			<if test="parentIds != null and parentIds != ''">
+				AND a.parent_ids LIKE 
+					<if test="dbName == 'oracle'">'%'||#{parentIds}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{parentIds}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{parentIds},'%')</if>
+			</if>
+		</where>
+		ORDER BY a.sort ASC
+	</select>
+	
+	<select id="findAllList" resultType="Classes">
+		SELECT 
+			<include refid="classesColumns"/>
+		FROM classes a
+		<include refid="classesJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		ORDER BY a.sort ASC
+	</select>
+	
+	<select id="findByParentIdsLike" resultType="Classes">
+		SELECT
+			a.id,
+			a.parent_id AS "parent.id",
+			a.parent_ids
+		FROM classes a
+		<include refid="classesJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			AND a.parent_ids LIKE #{parentIds}
+		</where>
+		ORDER BY a.sort ASC
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO classes(
+			id,
+			classes,
+			sort,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			parent_id,
+			parent_ids,
+			status
+		) VALUES (
+			#{id},
+			#{classes},
+			#{sort},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{parent.id},
+			#{parentIds},
+			#{status}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE classes SET 	
+			classes = #{classes},
+			sort = #{sort},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			parent_id = #{parent.id},
+			parent_ids = #{parentIds},
+			status = #{status}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateParentIds">
+		UPDATE classes SET 
+			parent_id = #{parent.id}, 
+			parent_ids = #{parentIds}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE classes SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id} OR parent_ids LIKE '%,'||#{id}||',%'
+	</update>
+	
+</mapper>

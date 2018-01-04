@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.bruceshop.dao.product.BruceshopProductDao">
+    
+	<sql id="bruceshopProductColumns">
+		a.id AS "id",
+		a.category_id AS "categoryId",
+		a.name AS "name",
+		a.subtitle AS "subtitle",
+		a.main_image AS "mainImage",
+		a.detail AS "detail",
+		a.price AS "price",
+		a.stock AS "stock",
+		a.status AS "status",
+		a.brand_id AS "brandId",
+		a.warehouse AS "warehouse",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		p.name AS "categoryName",
+		q.name AS "brandName"
+	</sql>
+	
+	<sql id="bruceshopProductJoins">
+		LEFT JOIN bruceshop_category p ON p.id = a.category_id
+		LEFT JOIN bruceshop_brand q ON q.id = a.brand_id
+	</sql>
+    
+	<select id="get" resultType="BruceshopProduct">
+		SELECT 
+			<include refid="bruceshopProductColumns"/>
+		FROM bruceshop_product a
+		<include refid="bruceshopProductJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="BruceshopProduct">
+		SELECT 
+			<include refid="bruceshopProductColumns"/>
+		FROM bruceshop_product a
+		<include refid="bruceshopProductJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="BruceshopProduct">
+		SELECT 
+			<include refid="bruceshopProductColumns"/>
+		FROM bruceshop_product a
+		<include refid="bruceshopProductJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO bruceshop_product(
+			id,
+			category_id,
+			name,
+			subtitle,
+			main_image,
+			detail,
+			price,
+			stock,
+			status,
+			brand_id,
+			warehouse,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{categoryId},
+			#{name},
+			#{subtitle},
+			#{mainImage},
+			#{detail},
+			#{price},
+			#{stock},
+			#{status},
+			#{brandId},
+			#{warehouse},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE bruceshop_product SET 	
+			category_id = #{categoryId},
+			name = #{name},
+			subtitle = #{subtitle},
+			main_image = #{mainImage},
+			detail = #{detail},
+			price = #{price},
+			stock = #{stock},
+			status = #{status},
+			brand_id = #{brandId},
+			warehouse = #{warehouse},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE bruceshop_product SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>
